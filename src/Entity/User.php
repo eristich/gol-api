@@ -3,10 +3,13 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use JMS\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -20,10 +23,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 30, unique: true)]
     #[Groups(['user:create', 'user:get'])]
+    #[Assert\NotBlank(
+        message: 'Username should not be blank',
+        groups: ['user:create']
+    )]
+    #[Assert\Length(
+        min: 3,
+        max: 30,
+        minMessage: 'Username should be at least {{ limit }} characters long',
+        maxMessage: 'Username should be at most {{ limit }} characters long',
+        groups: ['user:create']
+    )]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['user:create'])]
+    #[Assert\NotBlank(
+        message: 'Password should not be blank',
+        groups: ['user:create']
+    )]
     private ?string $password = null;
 
     #[ORM\Column]
@@ -37,6 +55,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     #[Groups(['user:get'])]
     private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\OneToMany(targetEntity: Simulation::class, mappedBy: 'owner')]
+    private Collection $simulations;
+
+    public function __construct()
+    {
+        $this->simulations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -127,5 +153,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Simulation>
+     */
+    public function getSimulations(): Collection
+    {
+        return $this->simulations;
+    }
+
+    public function addSimulation(Simulation $simulation): static
+    {
+        if (!$this->simulations->contains($simulation)) {
+            $this->simulations->add($simulation);
+            $simulation->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSimulation(Simulation $simulation): static
+    {
+        if ($this->simulations->removeElement($simulation)) {
+            // set the owning side to null (unless already changed)
+            if ($simulation->getOwner() === $this) {
+                $simulation->setOwner(null);
+            }
+        }
+
+        return $this;
     }
 }

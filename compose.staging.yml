@@ -8,7 +8,7 @@ services:
     hostname: gol-db
     image: postgres:15
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-gol-db}
+      - POSTGRES_DB=${POSTGRES_DB:-gol}
       - POSTGRES_USER=${POSTGRES_USER:-gol}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-gol}
     networks:

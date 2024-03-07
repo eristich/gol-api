@@ -47,10 +47,6 @@ jobs:
           target: "~/.deploy/${{ github.event.repository.name }}/"
 
       - name: remote docker-compose up via ssh
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -59,6 +55,9 @@ jobs:
           port: 22
           envs: POSTGRES_USER,POSTGRES_PASSWORD,APP_DOMAIN
           script: |
+            export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            export APP_DOMAIN=${{ secrets.APP_DOMAIN }}
             cd ~/.deploy/${{ github.event.repository.name }}
             docker compose -f ./compose.staging.yml down -v
             docker compose -f ./compose.staging.yml up -d --build --force-recreate

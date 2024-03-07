@@ -57,7 +57,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USERNAME }}
           key: ${{ secrets.DEPLOY_KEY }}
           port: 22
-          script: |
+          run: |
             cd ~/.deploy/${{ github.event.repository.name }}
             docker compose -f ./compose.staging.yml down -v
             docker compose -f ./compose.staging.yml up -d --build --force-recreate

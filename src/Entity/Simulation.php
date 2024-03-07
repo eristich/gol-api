@@ -39,14 +39,6 @@ class Simulation
     #[ORM\Column]
     #[Groups(['simulation:create', 'simulation:get'])]
     #[Type('array')]
-    #[Assert\NotBlank(
-        message: 'Content should not be blank',
-        groups: ['simulation:create']
-    )]
-    #[Assert\NotNull(
-        message: 'Content should not be null',
-        groups: ['simulation:create']
-    )]
     private array $content = [];
 
     #[ORM\ManyToOne(inversedBy: 'simulations')]

@@ -1,0 +1,53 @@
+---
+version: '3.8'
+
+services:
+
+  gol-db:
+    container_name: gol-db
+    hostname: gol-db
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-gol-db}
+      - POSTGRES_USER=${POSTGRES_USER:-gol}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-gol}
+    networks:
+      - gol-network
+    volumes:
+      - data:/var/lib/postgresql/data
+
+  gol-api:
+    container_name: gol-api
+    hostname: gol-api
+    command: ['./run-it.sh']
+    build:
+      context: .
+      dockerfile: .docker/staging/Dockerfile
+    environment:
+      - APP_DEBUG=true
+      - SERVER_NAME=:80
+    networks:
+      - gol-network
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gol-api.entrypoints=web"
+      - "traefik.http.routers.gol-api.rule=Host(`${APP_DOMAIN:-gol-api.local}`)"
+      - "traefik.http.services.gol-api.loadbalancer.server.port=80"
+      - "traefik.docker.network=traefik_proxy"
+    depends_on:
+      - gol-db
+    extra_hosts:
+      # Ensure that host.docker.internal is correctly defined on Linux
+      - host.docker.internal:host-gateway
+
+networks:
+  gol-network:
+    driver: bridge
+  traefik_proxy:
+    external: true
+
+volumes:
+  data:
+
+    

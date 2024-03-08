@@ -26,24 +26,34 @@ class SimulationController extends AbstractController
         ValidatorInterface      $validator
     ): JsonResponse
     {
-        $simulation = $serializer->deserialize(
+        $payload = $serializer->deserialize(
             $request->getContent(),
             Simulation::class,
             'json',
             DeserializationContext::create()->setGroups(['simulation:create'])
         );
 
-        $errors = $validator->validate($simulation, null, ['simulation:create']);
+        $errors = $validator->validate($payload, null, ['simulation:create']);
         if (count($errors) > 0) {
             throw new BadRequestException($serializer->serialize($errors, 'json'));
         }
 
-        $simulation->setOwner($this->getUser());
-        $em->persist($simulation);
+        if (empty($payload->getContent())) {
+            $matrix = [];
+            for ($y = 0; $y < 50; $y++) {
+                for ($x = 0; $x < 80; $x++) {
+                    $matrix[$y][] = rand(1, 3) === 1 ? 1 : 0;
+                }
+            }
+            $payload->setContent($matrix);
+        }
+
+        $payload->setOwner($this->getUser());
+        $em->persist($payload);
         $em->flush();
 
         return new JsonResponse(
-            $serializer->serialize($simulation, 'json', SerializationContext::create()->setGroups(['simulation:get'])),
+            $serializer->serialize($payload, 'json', SerializationContext::create()->setGroups(['simulation:get'])),
             Response::HTTP_CREATED,
             [],
             true

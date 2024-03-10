@@ -45,6 +45,10 @@ class Simulation
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['simulation:get'])]
+    private ?\DateTimeImmutable $sharedAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -82,6 +86,18 @@ class Simulation
     public function setOwner(?User $owner): static
     {
         $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getSharedAt(): ?\DateTimeImmutable
+    {
+        return $this->sharedAt;
+    }
+
+    public function setSharedAt(?\DateTimeImmutable $sharedAt): static
+    {
+        $this->sharedAt = $sharedAt;
 
         return $this;
     }

@@ -100,4 +100,30 @@ class SimulationController extends AbstractController
             true
         );
     }
+
+    #[Route('', name: 'api.v1.simulation.get-all', methods: ['GET'])]
+    public function getAll(
+        Request                 $request,
+        SerializerInterface     $serializer,
+        SimulationRepository    $repository
+    ): JsonResponse
+    {
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 10);
+        $mode = $request->query->getString('mode', 'all');
+        $offset = ($page - 1) * $limit;
+
+        if ($mode === 'shared') {
+            $simulations = $repository->getSharedSimulationsByPagination($offset, $limit);
+        } else {
+            $simulations = $repository->findBy([], [], $limit, $offset);
+        }
+
+        return new JsonResponse(
+            $serializer->serialize($simulations, 'json', SerializationContext::create()->setGroups(['simulation:get'])),
+            Response::HTTP_OK,
+            [],
+            true
+        );
+    }
 }

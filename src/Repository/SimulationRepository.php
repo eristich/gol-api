@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Simulation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @extends ServiceEntityRepository<Simulation>
@@ -19,6 +20,17 @@ class SimulationRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Simulation::class);
+    }
+
+    public function getSharedSimulationsByPagination(int $offset = 0, int $limit = 5): array
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.sharedAt IS NOT NULL')
+            ->orderBy('s.sharedAt', 'DESC')
+            ->setFirstResult($offset * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**

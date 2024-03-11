@@ -69,7 +69,7 @@ class SimulationController extends AbstractController
     #[IsGranted(
         attribute: new Expression('subject["owner"] === user and subject["sharedAt"] === null'),
         subject: [
-            'owner' => new Expression('args["simulation"]'),
+            'owner' => new Expression('args["simulation"].getOwner()'),
             'sharedAt' => new Expression('args["simulation"].getSharedAt()')
         ]
     )]

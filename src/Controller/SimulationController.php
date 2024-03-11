@@ -3,16 +3,21 @@
 namespace App\Controller;
 
 use App\Entity\Simulation;
+use App\Repository\SimulationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Requirement\Requirement;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/v1/simulation')]
@@ -57,6 +62,28 @@ class SimulationController extends AbstractController
             Response::HTTP_CREATED,
             [],
             true
+        );
+    }
+
+    #[Route('/{id}/share', name: 'api.v1.simulation.share', requirements: ['id' => Requirement::DIGITS], methods: ['POST'])]
+    #[IsGranted(
+        attribute: new Expression('subject["owner"] === user and subject["sharedAt"] === null'),
+        subject: [
+            'owner' => new Expression('args["simulation"]'),
+            'sharedAt' => new Expression('args["simulation"].getSharedAt()')
+        ]
+    )]
+    public function share(
+        #[MapEntity] Simulation $simulation,
+        EntityManagerInterface  $em
+    ): JsonResponse
+    {
+        $simulation->setSharedAt(new \DateTimeImmutable());
+        $em->flush();
+
+        return new JsonResponse(
+            null,
+            Response::HTTP_NO_CONTENT
         );
     }
 }

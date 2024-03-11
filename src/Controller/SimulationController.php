@@ -86,4 +86,18 @@ class SimulationController extends AbstractController
             Response::HTTP_NO_CONTENT
         );
     }
+
+    #[Route('/{id}', name: 'api.v1.simulation.get-id', requirements: ['id' => Requirement::DIGITS], methods: ['GET'])]
+    public function getById(
+        Simulation          $simulation,
+        SerializerInterface $serializer
+    ): JsonResponse
+    {
+        return new JsonResponse(
+            $serializer->serialize($simulation, 'json', SerializationContext::create()->setGroups(['simulation:get'])),
+            Response::HTTP_OK,
+            [],
+            true
+        );
+    }
 }
